@@ -1,15 +1,15 @@
-# blender_cylinder_generator
+# CylStack: Cylinder Arrangement by Gravity in Blender
 Small blender script, that allows to generate quick and random cylinder layouts, that are simulated physically. Primary intention of this is Dataset Generation for 3D Vision Tasks.
 
 ## Usage
 
-⚠️ Blender 4.0 is required, other versions are untested! ⚠️
+⚠️ Blender 4.0 is required, other versions are untested! Tested on Linux, should work on Windows! ⚠️
  
 
 #### Dataset Creation
 ```
 mkdir output
-blender CylinerGen.blend --background --python blender_gen.py -- <Number of Generations> <Output Folder> 
+blender blender_files/CylinerGen.blend --background --python blender_gen.py -- <Number of Generations> <Output Folder> 
 ```
 
 #### Dataset Visualization
