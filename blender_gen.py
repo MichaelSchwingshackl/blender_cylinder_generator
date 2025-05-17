@@ -18,8 +18,8 @@ for gen_i in range(count):
     random.seed(gen_i)
     # === CONFIGURATION ===
     N = random.randint(1, 10)
-    log_radius_range = (0.2, 0.6)
-    log_length_range = (3, 9.0)
+    cyl_radius_range = (0.2, 0.6)
+    cyl_length_range = (3, 9.0)
     spawn_area = random.uniform(3, 7)
     min_height = 2
     height_increment = 1
@@ -30,7 +30,7 @@ for gen_i in range(count):
     # === CLEANUP ===
     def cleanup_scene():
         for obj in bpy.data.objects:
-            if obj.name.startswith("Log") or obj.name == "Ground":
+            if obj.name.startswith("Cylinder") or obj.name == "Ground":
                 bpy.data.objects.remove(obj, do_unlink=True)
 
     cleanup_scene()
@@ -44,12 +44,12 @@ for gen_i in range(count):
     ground.rigid_body.friction = 1
 
 
-    # === CREATE LOGS ===
-    log_infos = []
+    # === CREATE Cylinders ===
+    cylinder_infos = []
 
     for i in range(N):
-        radius = random.uniform(*log_radius_range)
-        length = random.uniform(*log_length_range)
+        radius = random.uniform(*cyl_radius_range)
+        length = random.uniform(*cyl_length_range)
 
         x = random.uniform(-spawn_area, spawn_area)
         y = random.uniform(-spawn_area, spawn_area)
@@ -63,20 +63,19 @@ for gen_i in range(count):
             rotation=(0, math.radians(90), z_rot)
         )
 
-        log = bpy.context.active_object
-        log.name = f"Log_{i}"
+        cylinder = bpy.context.active_object
+        cylinder.name = f"Cylinder_{i}"
 
         bpy.ops.rigidbody.object_add()
-        log.rigid_body.mass = length * 3.1415 * radius**2 * 480 
-        log.rigid_body.friction = 1.0
-        log.rigid_body.angular_damping = 0.9
-        log.rigid_body.linear_damping = 0.2
+        cylinder.rigid_body.mass = length * 3.1415 * radius**2 * 480 
+        cylinder.rigid_body.friction = 1.0
+        cylinder.rigid_body.angular_damping = 0.9
+        cylinder.rigid_body.linear_damping = 0.2
 
-        log_infos.append({
-            "name": log.name,
+        cylinder_infos.append({
+            "name": cylinder.name,
             "length": length,
             "radius": radius,
-            #"start_matrix": list(log.matrix_world.copy()),
         })
 
     # === SIMULATE ===
@@ -89,14 +88,14 @@ for gen_i in range(count):
     bpy.ops.ptcache.bake_all(bake=True)
 
     # === WAIT UNTIL SETTLED ===
-    def is_settled(log_objects, threshold):
-        return all(obj.location.z < threshold for obj in log_objects)
+    def is_settled(cylinder_objects, threshold):
+        return all(obj.location.z < threshold for obj in cylinder_objects)
 
     settled_frame = frame_limit
     for frame in range(1, frame_limit + 1):
         scene.frame_set(frame)
-        logs = [bpy.data.objects[info["name"]] for info in log_infos]
-        if is_settled(logs, settled_z_threshold):
+        cylinders = [bpy.data.objects[info["name"]] for info in cylinder_infos]
+        if is_settled(cylinders, settled_z_threshold):
             settled_frame = frame
             break
 
@@ -122,7 +121,7 @@ for gen_i in range(count):
         return p1_world, p2_world
 
     scene.frame_set(settled_frame)
-    for info in log_infos:
+    for info in cylinder_infos:
         obj = bpy.data.objects[info["name"]]
         p1, p2 = get_endpoints(obj, info["length"])
         info["end_endpoints"] = (list(p1), list(p2))
@@ -133,7 +132,7 @@ for gen_i in range(count):
 
     # === WRITE TO FILE ===
     with open(output_path, "w") as f:
-        json.dump(log_infos, f)
+        json.dump(cylinder_infos, f)
         
     output_obj_path = f"{out_folder}/mesh_{gen_i:04d}.obj"
 
